@@ -84,6 +84,13 @@ Pick something you want to customize! Your job is to *describe* what you want to
 3. "Draw a tiny circle on the screen next to the Wi-Fi icon if the device connects successfully."
 4. Add a secret "Easter Egg" screen that shows up if you press one of the ESP32's physical buttons!
 
+### 👑 Boss Level Challenges: Connect to the Internet!
+Because your ESP32 has Wi-Fi and our code already knows how to fetch JSON data (using `HTTPClient` and `ArduinoJson`), you can easily ask the AI to download data from **free open APIs**! Try having the AI create a brand new screen that shows:
+* **A Game Server Status:** Tell the AI to fetch from `https://api.mcsrvstat.us/2/mc.hypixel.net` and print if the server is offline or online!
+* **A Daily Dad Joke:** Tell the AI to fetch a random joke from `https://icanhazdadjoke.com/` (Make sure to tell the AI to request it as JSON).
+* **NASA's Space Info:** Tell the AI to fetch today's space fact from `https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY`.
+* **Pokemon Stats:** Tell the AI to hit `https://pokeapi.co/api/v2/pokemon/pikachu` and display Pikachu's weight on the screen!
+
 **Remember:** If the AI writes something that causes a red squiggly line or breaks the build, don't panic! Just copy the compile error message, paste it right back to the AI, and say "I got this error, fix it." It will almost always correctly fix its own mistakes! 
 
 Happy Vibe Coding! 😎
