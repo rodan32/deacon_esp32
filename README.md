@@ -44,9 +44,10 @@ Since Chromebooks can't easily install massive desktop IDEs, you'll be using **G
 
 ### 1. Git (Saving & Sharing Code)
 Git is the tool we use to manage our **Repository**. It's like a massive "undo" button and a time machine for coders.
-* **Clone:** Downloads the code from the internet to your computer.
+* **Fork:** First, click the **Fork** button at the top right of the GitHub page. This creates a personal copy of the code on your own account so you have permission to save your changes!
+* **Clone:** Downloads your personal copy of the code from the internet to your computer.
   ```bash
-  git clone https://github.com/rodan32/deacon_esp32.git
+  git clone https://github.com/YOUR_USERNAME/deacon_esp32.git
   ```
 * **Commit:** Saves a snapshot of your changes to your local history. (Always write a tiny message describing what you changed!)
   ```bash
