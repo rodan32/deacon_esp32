@@ -124,7 +124,7 @@ void displaySchedule() {
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setTextSize(2);
   tft.setCursor(5, 5);
-  tft.println("THIS WEEK");
+  tft.println("LESSON: THIS WEEK");
 
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
@@ -150,7 +150,7 @@ void displaySchedule() {
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setTextSize(2);
   tft.setCursor(5, nextY);
-  tft.println("NEXT WEEK");
+  tft.println("LESSON: NEXT WEEK");
 
   tft.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
   tft.setTextSize(1);
@@ -190,7 +190,7 @@ void displayActivities() {
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setTextSize(2);
   tft.setCursor(5, 5);
-  tft.println("NEXT ACTIVITY");
+  tft.println("ACTIVITY: THIS WK");
 
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
@@ -213,7 +213,7 @@ void displayActivities() {
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setTextSize(2);
   tft.setCursor(5, nextY);
-  tft.println("LATER...");
+  tft.println("ACTIVITY: NEXT WK");
 
   tft.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
   tft.setTextSize(1);
@@ -253,7 +253,7 @@ void displayAssignments() {
   tft.setCursor(5, 5);
   String thDate =
       thisAssgn["date"].isNull() ? "TBD" : thisAssgn["date"].as<String>();
-  tft.println(thDate);
+  tft.println("ASSIGN: THIS WEEK");
 
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
@@ -263,7 +263,8 @@ void displayAssignments() {
   String m1 = thisAssgn["messenger"].isNull()
                   ? "TBD"
                   : thisAssgn["messenger"].as<String>();
-  String twDetails = "Lessons: " + l1 + "\nMessenger: " + m1;
+  String twDetails =
+      "Date: " + thDate + "\nLessons: " + l1 + "\nMessenger: " + m1;
   printWrapped(5, 25, 230, twDetails);
 
   // Display LATER ASSIGNMENT
@@ -273,7 +274,7 @@ void displayAssignments() {
   tft.setCursor(5, nextY);
   String nxDate =
       nextAssgn["date"].isNull() ? "TBD" : nextAssgn["date"].as<String>();
-  tft.println(nxDate);
+  tft.println("ASSIGN: NEXT WEEK");
 
   tft.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
   tft.setTextSize(1);
@@ -283,7 +284,8 @@ void displayAssignments() {
   String m2 = nextAssgn["messenger"].isNull()
                   ? "TBD"
                   : nextAssgn["messenger"].as<String>();
-  String nwDetails = "Lessons: " + l2 + "\nMessenger: " + m2;
+  String nwDetails =
+      "Date: " + nxDate + "\nLessons: " + l2 + "\nMessenger: " + m2;
   printWrapped(5, nextY + 20, 230, nwDetails);
 
   drawWifiIcon();
@@ -317,17 +319,10 @@ void syncDataFromOnlineUrl() {
       String payload = http.getString();
       Serial.println("Downloaded new data.");
 
-      // Basic validation
-      DynamicJsonDocument doc(2048);
-      DeserializationError error = deserializeJson(doc, payload);
-      if (!error) {
-        rawJsonData = payload;
-        preferences.putString("jsonData", rawJsonData);
-        refreshDisplay();
-      } else {
-        Serial.print("JSON parse failed: ");
-        Serial.println(error.c_str());
-      }
+      // Save it and refresh
+      rawJsonData = payload;
+      preferences.putString("jsonData", rawJsonData);
+      refreshDisplay();
     }
   } else {
     Serial.printf("HTTP GET failed, error: %s\n",
