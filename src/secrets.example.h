@@ -7,9 +7,8 @@ struct WiFiCredential {
 };
 
 // Replace with your actual WiFi credentials
-const WiFiCredential WIFI_NETWORKS[] = {{"COCHRAN1", "8014895086"},
-                                        {"Zentar", "8012254434"},
-                                        {"Liahona", "alma3738"}};
+const WiFiCredential WIFI_NETWORKS[] = {
+    {"YOUR_WIFI_NAME", "YOUR_WIFI_PASSWORD"}};
 
 const int WIFI_NETWORKS_COUNT =
     sizeof(WIFI_NETWORKS) / sizeof(WIFI_NETWORKS[0]);

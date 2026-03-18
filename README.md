@@ -58,7 +58,13 @@ Git is the tool we use to manage our **Repository**. It's like a massive "undo" 
   git push
   ```
 
-### 2. PlatformIO (PIO) (Building the Code)
+### 2. Configure Wi-Fi
+Before you can blast code to the ESP32, you **must** configure your internet settings so it can connect!
+1. Go into the `src/` folder on the left.
+2. Rename the file `secrets.example.h` to exactly `secrets.h`.
+3. Open `secrets.h` and change `"YOUR_WIFI_NAME"` and `"YOUR_WIFI_PASSWORD"` to the actual Wi-Fi network you are using tonight!
+
+### 3. PlatformIO (PIO) (Building the Code)
 The ESP32 is a tiny computer, but it doesn't speak our C++ language directly. It only understands raw 1s and 0s. We use an IDE extension called **PlatformIO** to translate (compile) our C++ code into 1s and 0s and blast it over the USB cable onto the board.
 * Look for the **Alien Head** 👽 icon on the left side of your IDE.
 * **Build (Checkmark `✓`):** Checks your code for typos and translates it.
