@@ -15,6 +15,7 @@ const int WIFI_NETWORKS_COUNT =
     sizeof(WIFI_NETWORKS) / sizeof(WIFI_NETWORKS[0]);
 
 // Put the URL to your homelab-hosted JSON file here
-#define DATA_JSON_URL "http://YOUR_HOMELAB_IP/deacon_data.json"
+#define DATA_JSON_URL                                                          \
+  "https://dashboard.zarchstuff.com/exports/deacon_data.json"
 
 #endif
