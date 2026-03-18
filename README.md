@@ -26,7 +26,8 @@ Depending on what computer you brought tonight, here's how you can vibe code:
 
 ### For Windows, Mac, or Linux Users
 We highly recommend downloading an **AI-powered IDE**. These are modern code editors that have AI built right in, so you can just highlight code and ask the AI to change it!
-* **[Cursor](https://cursor.sh/)** (Highly Recommended!)
+* **[Antigravity](https://deepmind.google/technologies/gemini/)** (The Google DeepMind Agent we're currently using!)
+* **[Cursor](https://cursor.sh/)** (Highly Recommended Desktop App)
 * **[Windsurf](https://codeium.com/windsurf)**
 * **VS Code** (with the GitHub Copilot extension installed)
 
@@ -64,13 +65,14 @@ The ESP32 is a tiny computer, but it doesn't speak our C++ language directly. It
 
 ---
 
-💡 **Pro-Tip: Flashing from Chromebooks (or Android Phones!)**
-Since GitHub Codespaces runs in the cloud, it can't magically reach through the internet into your Chromebook's USB port to automatically upload. However, Chrome has a superpower called **Web Serial**!
+💡 **Pro-Tip: Flashing from Chromebooks or Phones**
+Since GitHub Codespaces runs in the cloud, it can't magically reach through the internet into your device's USB port to automatically upload. However, Chrome has a superpower called **Web Serial**!
 1. Build your code in Codespaces by clicking the **Checkmark ✓**.
 2. On the left file explorer, find `.pio/build/esp32dev/firmware.bin`. Right-click it and select **Download**.
-3. Plug your ESP32 into your Chromebook (or your Android Phone with a USB-C OTG cable!).
+3. Plug your ESP32 into your Chromebook (or your **Android Phone** with a USB-C OTG data cable!).
+   * *(Note: iPhones and iPads absolutely cannot do this because Apple built-in security blocks browser USB access!)*
 4. Open Chrome and go to the **[Adafruit WebSerial ESPTool](https://adafruit.github.io/Adafruit_WebSerial_ESPTool/)**.
-5. Click **Connect**, select your USB port, and manually upload your `firmware.bin` file to address `0x10000`. Boom! Custom code blasted from the browser!
+5. Click **Connect**, select your USB port, and manually upload your `firmware.bin` file to address `0x10000`. Boom! Custom code blasted straight from your phone or Chromebook!
 
 ---
 
