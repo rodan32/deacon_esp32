@@ -263,9 +263,14 @@ void displayAssignments() {
   String m1 = thisAssgn["messenger"].isNull()
                   ? "TBD"
                   : thisAssgn["messenger"].as<String>();
-  String twDetails =
-      "Date: " + thDate + "\nLessons: " + l1 + "\nMessenger: " + m1;
-  printWrapped(5, 25, 230, twDetails);
+  tft.print("Date: ");
+  tft.println(thDate);
+  tft.setCursor(5, tft.getCursorY());
+  tft.print("Lessons: ");
+  tft.println(l1);
+  tft.setCursor(5, tft.getCursorY());
+  tft.print("Messenger: ");
+  tft.println(m1);
 
   // Display LATER ASSIGNMENT
   int nextY = tft.getCursorY() + 15;
@@ -284,9 +289,14 @@ void displayAssignments() {
   String m2 = nextAssgn["messenger"].isNull()
                   ? "TBD"
                   : nextAssgn["messenger"].as<String>();
-  String nwDetails =
-      "Date: " + nxDate + "\nLessons: " + l2 + "\nMessenger: " + m2;
-  printWrapped(5, nextY + 20, 230, nwDetails);
+  tft.print("Date: ");
+  tft.println(nxDate);
+  tft.setCursor(5, tft.getCursorY());
+  tft.print("Lessons: ");
+  tft.println(l2);
+  tft.setCursor(5, tft.getCursorY());
+  tft.print("Messenger: ");
+  tft.println(m2);
 
   drawWifiIcon();
   drawClock();
