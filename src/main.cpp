@@ -122,7 +122,7 @@ void displaySchedule() {
 
   // Display THIS WEEK
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-  tft.setTextSize(2);
+  tft.setTextSize(1);
   tft.setCursor(5, 5);
   tft.println("LESSON: THIS WEEK");
 
@@ -148,7 +148,7 @@ void displaySchedule() {
   // Display NEXT WEEK
   int nextY = tft.getCursorY() + 15;
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-  tft.setTextSize(2);
+  tft.setTextSize(1);
   tft.setCursor(5, nextY);
   tft.println("LESSON: NEXT WEEK");
 
@@ -188,7 +188,7 @@ void displayActivities() {
 
   // Display THIS ACTIVITY
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-  tft.setTextSize(2);
+  tft.setTextSize(1);
   tft.setCursor(5, 5);
   tft.println("ACTIVITY: THIS WK");
 
@@ -211,7 +211,7 @@ void displayActivities() {
   // Display LATER ACTIVITY
   int nextY = tft.getCursorY() + 15;
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-  tft.setTextSize(2);
+  tft.setTextSize(1);
   tft.setCursor(5, nextY);
   tft.println("ACTIVITY: NEXT WK");
 
@@ -249,7 +249,7 @@ void displayAssignments() {
 
   // Display THIS ASSIGNMENT
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-  tft.setTextSize(2);
+  tft.setTextSize(1);
   tft.setCursor(5, 5);
   String thDate =
       thisAssgn["date"].isNull() ? "TBD" : thisAssgn["date"].as<String>();
@@ -270,7 +270,7 @@ void displayAssignments() {
   // Display LATER ASSIGNMENT
   int nextY = tft.getCursorY() + 15;
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-  tft.setTextSize(2);
+  tft.setTextSize(1);
   tft.setCursor(5, nextY);
   String nxDate =
       nextAssgn["date"].isNull() ? "TBD" : nextAssgn["date"].as<String>();
