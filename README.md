@@ -81,6 +81,12 @@ Since GitHub Codespaces runs in the cloud, it can't magically reach through the 
 4. Open Chrome and go to the **[Adafruit WebSerial ESPTool](https://adafruit.github.io/Adafruit_WebSerial_ESPTool/)**.
 5. Click **Connect**, select your USB port, and manually upload your `firmware.bin` file to address `0x10000`. Boom! Custom code blasted straight from your phone or Chromebook!
 
+💡 **Pro-Tip: Using Bazzite, SteamOS, or Linux Flatpaks**
+If you brought a laptop running an immutable Linux like Bazzite, your Cursor IDE is likely running inside a secure **Flatpak** sandbox. Flatpaks completely block access to USB hardware for security, so clicking "Upload" in PlatformIO will fail with an "Access Denied" or "Port not found" error!
+1. Do not panic! Just let PlatformIO **Build (✓)** the `.bin` file inside the sandbox.
+2. Open your normal web browser and use the exact same **Web Serial** trick described above to flash the `.bin` file!
+*(Make sure your Linux user is in the `dialout` group by running `sudo usermod -aG dialout $USER` in the terminal beforehand, and restart your computer!)*
+
 ---
 
 ## 🎮 Tonight's Challenge
