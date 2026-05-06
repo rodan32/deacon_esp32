@@ -73,6 +73,24 @@ After a successful sync, the device may not refetch for roughly **an hour** (to 
 
 **Serial monitor:** baud **115200**. Open the monitor, then press **RST** on the board to see boot messages (version string, Wi-Fi attempts). If the monitor shows nothing, reset while the monitor is open.
 
+### This board and USB cables (IdeaSpark-style kit)
+
+This repo’s display settings match the common **IdeaSpark®-style** ESP32 with a **1.14" ST7789 (135×240)** screen. Those kits usually have:
+
+| On the board | Typical detail |
+|----------------|----------------|
+| **USB jack** | **USB-C** (receptacle on the PCB — you need a **USB-C plug** on the cable side that goes into the board). |
+| **Serial bridge** | Most listings use **WCH CH340** (tiny square IC near the USB port, often silkscreened **CH340**). Some clones or revisions use **Silicon Labs CP2102** instead — **look at the actual chip** if drivers or upload act weird. |
+
+**There is no special “Mac cable” or “Linux cable” SKU for this board.** It only needs a lead that carries **USB 2.0 data** to that bridge chip (plus normal 5 V). Serial is low speed; **“USB 3” / Thunderbolt / 240 W” labels do not help** if the cable is **charge-only** (no data wires) — those are very common in cable bins.
+
+**Shopping / bin-diving hints**
+
+- Prefer packaging or text that says **data**, **sync**, **480 Mbps**, or **USB 2.0** — not **charging only**.
+- **Shorter is better** for upload reliability (less voltage drop and less noise on D+/D−).
+- **USB-C ↔ USB-C:** fine **when** both ends are real data cables; many drawer cables are power-only.
+- **Same cable works on Linux but not Mac (or the other way):** usually **driver + OS timing + borderline cable** combined — try a **known-good short data cable** and the right **CH340 vs CP210x** driver before blaming “the Mac” or “the board.”
+
 ### 4. macOS tips (Apple laptops)
 
 Macs are great for this project, but **USB** is where most workshop pain shows up. Try these in order:
