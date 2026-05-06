@@ -1,108 +1,126 @@
-# 📱 ESP32 Deacon App - Vibe Coding Edition!
+# ESP32 Deacon App — “Vibe coding” edition
 
-Welcome to the ESP32 Deacon App project! Tonight, we're going to learn how to **"Vibe Code."** 
+Welcome! This project runs on a small **ESP32** board with a TFT screen and shows Deacon schedule data from a JSON file you host. You edit **C++** in `src/main.cpp`, build with **PlatformIO**, and flash over USB.
 
-## 🤔 What is "Vibe Coding"?
-"Vibe coding" is a fun way to build software where you act like the *director* or *manager* of the project, and an AI (like ChatGPT, Claude, or Cursor) acts as your super-fast typist. You don't need to memorize complex programming languages or every single piece of syntax. You just need to explain *what* you want the code to do, and the AI will help write it for you!
+## What is “vibe coding”?
 
-But before we tell the AI what to do, it helps to understand the moving parts!
+You describe what you want (to a human teammate or an AI assistant), review the code it suggests, and learn by changing things. You do not have to memorize every API — but it helps to know *roughly* what Wi-Fi, JSON, and the display stack are doing.
 
-## 🧠 The Cool Tech We're Using
+## What you are using
 
-### What is an ESP32?
-The little circuit board you're holding is an **ESP32**. It's basically a tiny, cheap computer (a "microcontroller") that has built-in Wi-Fi and Bluetooth. It's not as powerful as your phone, but it's perfect for "Internet of Things" (IoT) gadgets like smart home devices, weather stations, or our Deacon schedule display! The code we write tells the ESP32 exactly what to show on its screen.
+| Piece | What it is |
+|--------|------------|
+| **ESP32** | Microcontroller with Wi-Fi; runs your firmware. |
+| **This repo** | Source code; usually hosted on **GitHub** so you can fork, clone, and share changes. |
+| **IDE** | Editor + tools. Common choices: **Cursor**, **VS Code** + PlatformIO, **Google Antigravity**, etc. |
+| **PlatformIO** | Builds the firmware and uploads it to the board (alien icon in VS Code / Cursor). |
 
-### What is a Repository (Repo)?
-A **Repository** is like a super-powered Google Drive folder specifically made for code. Right now, all the files that make the ESP32 app work live in a repository on a website called **GitHub**. When we want to change the app, we download a copy of this repository, change the files, and then upload (push) our changes back so everyone can see them!
+## Choose your computer
 
-### What is an IDE?
-An **IDE** (Integrated Development Environment) is the software you use to write code. Think of it like Microsoft Word, but instead of writing essays, it's designed to help you write software by highlighting mistakes, color-coding keywords, and running the code!
+### Windows, Mac, or Linux
 
----
+Use a desktop IDE with **PlatformIO** (extension for VS Code / Cursor, or PlatformIO CLI).
 
-## 💻 Choosing Your Tools
+- [Google Antigravity](https://antigravity.google/) — Google’s agentic IDE (preview).
+- [Cursor](https://cursor.com/) — AI-native editor (very common for this workflow).
+- [Windsurf](https://codeium.com/windsurf)
+- **VS Code** + [PlatformIO IDE](https://platformio.org/install/ide?install=vscode) + optional GitHub Copilot
 
-Depending on what computer you brought tonight, here's how you can vibe code:
+### Chromebook (ChromeOS)
 
-### For Windows, Mac, or Linux Users
-We highly recommend downloading an **AI-powered IDE**. These are modern code editors that have AI built right in, so you can just highlight code and ask the AI to change it!
-* **[Antigravity](https://deepmind.google/technologies/gemini/)** (The Google DeepMind Agent we're currently using!)
-* **[Cursor](https://cursor.sh/)** (Highly Recommended Desktop App)
-* **[Windsurf](https://codeium.com/windsurf)**
-* **VS Code** (with the GitHub Copilot extension installed)
-
-### For Chromebook (ChromeOS) Users
-Since Chromebooks can't easily install massive desktop IDEs, you'll be using **GitHub Codespaces**. 
-**Codespaces** is basically a full IDE running on a powerful super-computer in the cloud, but its display streams directly into a tab in your Chrome browser! 
-1. Go to our repository on GitHub.
-2. Click the green `<> Code` button, switch to the "Codespaces" tab, and click "Create codespace on main". 
-3. Open ChatGPT or Claude in another Chrome tab to ask the AI for code, and then paste it right into your Codespaces IDE.
+Use **GitHub Codespaces** in the browser (full dev environment in the cloud). You cannot upload over USB from the cloud VM, so after **Build** you download `firmware.bin` and flash with **Web Serial** (see below).
 
 ---
 
-## 🚀 Setting Up the Project
+## Set up the project
 
-### 1. Git (Saving & Sharing Code)
-Git is the tool we use to manage our **Repository**. It's like a massive "undo" button and a time machine for coders.
-* **Fork:** First, click the **Fork** button at the top right of the GitHub page. This creates a personal copy of the code on your own account so you have permission to save your changes!
-* **Clone:** Downloads your personal copy of the code from the internet to your computer.
+### 1. Git (optional but recommended)
+
+Git tracks history and helps you share work.
+
+- **Fork** the repo on GitHub (your own copy to push to).
+- **Clone** your fork:
+
   ```bash
   git clone https://github.com/YOUR_USERNAME/deacon_esp32.git
+  cd deacon_esp32
   ```
-* **Commit:** Saves a snapshot of your changes to your local history. (Always write a tiny message describing what you changed!)
+
+- **Commit** saves a snapshot locally; **push** sends it to GitHub.
+
   ```bash
-  git commit -am "Changed screen colors to blue"
-  ```
-* **Push:** Uploads your snapshots back up to GitHub.
-  ```bash
+  git add src/main.cpp
+  git commit -m "Describe your change in plain English"
   git push
   ```
 
-### 2. Configure Wi-Fi
-Before you can blast code to the ESP32, you **must** configure your internet settings so it can connect!
-1. Go into the `src/` folder on the left.
-2. Rename the file `secrets.example.h` to exactly `secrets.h`.
-3. Open `secrets.h` and change `"YOUR_WIFI_NAME"` and `"YOUR_WIFI_PASSWORD"` to the actual Wi-Fi network you are using tonight!
+**Important:** `src/secrets.h` is **not** committed (it is in `.gitignore`). Never paste real passwords into a file you plan to push. Only `secrets.example.h` belongs in git.
 
-### 3. PlatformIO (PIO) (Building the Code)
-The ESP32 is a tiny computer, but it doesn't speak our C++ language directly. It only understands raw 1s and 0s. We use an IDE extension called **PlatformIO** to translate (compile) our C++ code into 1s and 0s and blast it over the USB cable onto the board.
-* Look for the **Alien Head** 👽 icon on the left side of your IDE.
-* **Build (Checkmark `✓`):** Checks your code for typos and translates it.
-* **Upload (Arrow `→`):** Pushes the translated code onto the ESP32 device!
+### 2. Wi-Fi and JSON URL
+
+1. In `src/`, **copy** `secrets.example.h` to **`secrets.h`** (same folder, exact name `secrets.h`).
+2. Edit **`WIFI_NETWORKS`**: one or more `{ "ssid", "password" }` entries. The board tries them **in order**, about **20 seconds** each, then moves on.
+3. Set **`DATA_JSON_URL`** to the HTTPS URL of your `deacon_data.json` (or the example URL your leaders provide).
+
+After a successful sync, the device may not refetch for roughly **an hour** (to save battery / complexity). If data looks stale, check your server export and any CDN cache — not only the board.
+
+### 3. Build and upload (PlatformIO)
+
+1. Install **PlatformIO** (VS Code extension or [CLI](https://docs.platformio.org/en/latest/core/installation.html)).
+2. Open this project folder in the IDE.
+3. **Build** (checkmark): compiles firmware.  
+4. **Upload** (arrow): flashes the ESP32 over USB.
+
+**Serial monitor:** baud **115200**. Open the monitor, then press **RST** on the board to see boot messages (version string, Wi-Fi attempts). If the monitor shows nothing, reset while the monitor is open.
+
+### 4. macOS: USB serial driver (if the port is missing)
+
+Some boards use **Silicon Labs CP210x** or **WCH CH34x** USB–serial chips. If no `/dev/cu.usbserial-*` (or similar) appears when you plug in the board, install the vendor driver. This repo includes installers under **`drivers/`** for convenience (see each vendor’s PDF/notes inside the zip folders).
+
+### 5. Chromebook / Flatpak / no USB from IDE
+
+Codespaces and some **Flatpak** sandboxes cannot see USB. **Build** in the IDE, then:
+
+1. Download **`.pio/build/esp32dev/firmware.bin`** from the project.
+2. Use Chrome: [Adafruit WebSerial ESPTool](https://adafruit.github.io/Adafruit_WebSerial_ESPTool/) → Connect → flash **`firmware.bin`** at offset **`0x10000`** (default app slot for this partition layout).
+
+*iPhone/iPad:* browsers cannot do Web Serial USB flashing the same way.
+
+**Linux:** your user may need to be in the `dialout` group for serial access:
+
+```bash
+sudo usermod -aG dialout $USER
+```
+
+(log out and back in afterward)
 
 ---
 
-💡 **Pro-Tip: Flashing from Chromebooks or Phones**
-Since GitHub Codespaces runs in the cloud, it can't magically reach through the internet into your device's USB port to automatically upload. However, Chrome has a superpower called **Web Serial**!
-1. Build your code in Codespaces by clicking the **Checkmark ✓**.
-2. On the left file explorer, find `.pio/build/esp32dev/firmware.bin`. Right-click it and select **Download**.
-3. Plug your ESP32 into your Chromebook (or your **Android Phone** with a USB-C OTG data cable!).
-   * *(Note: iPhones and iPads absolutely cannot do this because Apple built-in security blocks browser USB access!)*
-4. Open Chrome and go to the **[Adafruit WebSerial ESPTool](https://adafruit.github.io/Adafruit_WebSerial_ESPTool/)**.
-5. Click **Connect**, select your USB port, and manually upload your `firmware.bin` file to address `0x10000`. Boom! Custom code blasted straight from your phone or Chromebook!
+## Firmware version
 
-💡 **Pro-Tip: Using Bazzite, SteamOS, or Linux Flatpaks**
-If you brought a laptop running an immutable Linux like Bazzite, your Cursor IDE is likely running inside a secure **Flatpak** sandbox. Flatpaks completely block access to USB hardware for security, so clicking "Upload" in PlatformIO will fail with an "Access Denied" or "Port not found" error!
-1. Do not panic! Just let PlatformIO **Build (✓)** the `.bin` file inside the sandbox.
-2. Open your normal web browser and use the exact same **Web Serial** trick described above to flash the `.bin` file!
-*(Make sure your Linux user is in the `dialout` group by running `sudo usermod -aG dialout $USER` in the terminal beforehand, and restart your computer!)*
+The file **`VERSION`** holds a simple release number (e.g. `1.0.0`). Each build runs `scripts/gen_fw_version.py`, which writes **`include/fw_version.h`** (git describe / commit). At boot, the firmware prints that info on **Serial** so you can confirm what is running.
 
 ---
 
-## 🎮 Tonight's Challenge
-Pick something you want to customize! Your job is to *describe* what you want to the AI, and let it write the code for `src/main.cpp`. Here are some fun ideas:
-1. "Change the background color of the 'Assignments' screen from black to dark blue."
-2. "Make the 'LESSON: THIS WEEK' text blink!"
-3. "Draw a tiny circle on the screen next to the Wi-Fi icon if the device connects successfully."
-4. Add a secret "Easter Egg" screen that shows up if you press one of the ESP32's physical buttons!
+## Ideas to customize (`src/main.cpp`)
 
-### 👑 Boss Level Challenges: Connect to the Internet!
-Because your ESP32 has Wi-Fi and our code already knows how to fetch JSON data (using `HTTPClient` and `ArduinoJson`), you can easily ask the AI to download data from **free open APIs**! Try having the AI create a brand new screen that shows:
-* **A Game Server Status:** Tell the AI to fetch from `https://api.mcsrvstat.us/2/mc.hypixel.net` and print if the server is offline or online!
-* **A Daily Dad Joke:** Tell the AI to fetch a random joke from `https://icanhazdadjoke.com/` (Make sure to tell the AI to request it as JSON).
-* **NASA's Space Info:** Tell the AI to fetch today's space fact from `https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY`.
-* **Pokemon Stats:** Tell the AI to hit `https://pokeapi.co/api/v2/pokemon/pikachu` and display Pikachu's weight on the screen!
+Pick one, describe it clearly to your assistant, then build and test.
 
-**Remember:** If the AI writes something that causes a red squiggly line or breaks the build, don't panic! Just copy the compile error message, paste it right back to the AI, and say "I got this error, fix it." It will almost always correctly fix its own mistakes! 
+1. Change colors or fonts on one of the schedule screens.
+2. Add a small indicator when Wi-Fi sync succeeds.
+3. Use a physical button to cycle screens or show an “easter egg” message.
 
-Happy Vibe Coding! 😎
+### Stretch: call a public HTTP API
+
+The project already uses **HTTPClient** and **ArduinoJson**. You could add another screen that GETs JSON from a public API (respect their rate limits and terms).
+
+Examples (for learning — APIs change over time):
+
+- Minecraft server status: `https://api.mcsrvstat.us/2/mc.hypixel.net`
+- Dad jokes (ask for JSON): `https://icanhazdadjoke.com/`
+- NASA picture of the day: `https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY` (`DEMO_KEY` is heavily rate-limited)
+- PokéAPI: `https://pokeapi.co/api/v2/pokemon/pikachu`
+
+If the build fails, copy the **compiler error** into your assistant and ask for a fix — that is normal iteration.
+
+Happy building.

@@ -1,5 +1,7 @@
 
-This directory is intended for project header files.
+This directory is for project header files.
+
+**Note:** `fw_version.h` is **generated on each build** by `scripts/gen_fw_version.py` (see `VERSION` in the repo root). It is listed in `.gitignore`; do not hand-edit it for long-lived changes.
 
 A header file is a file containing C declarations and macro definitions
 to be shared between several project source files. You request the use of a

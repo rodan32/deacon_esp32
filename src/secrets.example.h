@@ -6,9 +6,13 @@ struct WiFiCredential {
   const char *password;
 };
 
-// Replace with your actual WiFi credentials
+// Add as many networks as you like. The device tries them in order: if one
+// does not connect within ~20 seconds, it moves to the next, then repeats
+// on the next hourly sync.
 const WiFiCredential WIFI_NETWORKS[] = {
-    {"YOUR_WIFI_NAME", "YOUR_WIFI_PASSWORD"}};
+    {"YOUR_PRIMARY_WIFI", "YOUR_PRIMARY_PASSWORD"},
+    {"YOUR_SECONDARY_WIFI", "YOUR_SECONDARY_PASSWORD"},
+};
 
 const int WIFI_NETWORKS_COUNT =
     sizeof(WIFI_NETWORKS) / sizeof(WIFI_NETWORKS[0]);
