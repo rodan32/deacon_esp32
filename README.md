@@ -73,9 +73,26 @@ After a successful sync, the device may not refetch for roughly **an hour** (to 
 
 **Serial monitor:** baud **115200**. Open the monitor, then press **RST** on the board to see boot messages (version string, Wi-Fi attempts). If the monitor shows nothing, reset while the monitor is open.
 
-### 4. macOS: USB serial driver (if the port is missing)
+### 4. macOS tips (Apple laptops)
 
-Some boards use **Silicon Labs CP210x** or **WCH CH34x** USB–serial chips. If no `/dev/cu.usbserial-*` (or similar) appears when you plug in the board, install the vendor driver. This repo includes installers under **`drivers/`** for convenience (see each vendor’s PDF/notes inside the zip folders).
+Macs are great for this project, but **USB** is where most workshop pain shows up. Try these in order:
+
+**Serial port missing in the IDE**
+
+- Many ESP32 boards use a **USB–serial bridge** (Silicon Labs **CP210x**, WCH **CH34x**, etc.). If nothing like `/dev/cu.usbserial-*` or `/dev/cu.SLAB_USBtoUART` appears in **PlatformIO → project → devices**, install the chip vendor’s driver. This repo ships macOS installers under **`drivers/`** (open the matching folder or PDF inside the zip).
+- After installing a driver, **unplug and replug** the board. On newer macOS you may need to allow the driver under **System Settings → Privacy & Security** if macOS blocked it.
+
+**USB-C–to–USB-C straight into the Mac**
+
+- A lot of **USB-C cables are charge-only** (no data wires) or are flaky for **serial + reset** timing. If upload fails with “corrupt” / “wrong boot mode” / serial noise, **do not assume the cable is fine** just because it charges your phone.
+- **What often works better:** plug the board through a **simple USB-C hub or dongle** that has an **USB-A port**, then use a **short USB-A ↔ micro-USB or USB-A ↔ USB-C** cable you know carries **data** (many kit cables are fine). An **Apple USB-C → USB-A adapter** plus the board’s data cable is a common winning combo.
+- A **powered USB hub** (wall-powered) can help if the Mac’s port browns out during flash (rare but real on some hubs/laptops). It is **not required** for everyone — try a hub when you see random disconnects mid-upload.
+
+**Upload / serial monitor quirks**
+
+- Use **115200** for the serial monitor (matches `platformio.ini`).
+- If the monitor is blank, open the monitor first, then press **RST** on the board.
+- If **Upload** never connects: try another cable, another port, or **hold BOOT** (if your board has one) while starting upload, then release when esptool begins (exact timing varies by board — ask a leader or check the board’s silkscreen).
 
 ### 5. Chromebook / Flatpak / no USB from IDE
 
