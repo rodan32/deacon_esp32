@@ -1,3 +1,4 @@
+#include "fw_version.h"
 #include "secrets.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -343,6 +344,12 @@ void syncDataFromOnlineUrl() {
 
 void setup() {
   Serial.begin(115200);
+  Serial.println();
+  Serial.println(F("=== Deacon ESP32 ==="));
+  Serial.printf("Firmware version: %s\n", FW_VERSION);
+  Serial.printf("Git describe:     %s\n", FW_GIT_DESCRIBE);
+  Serial.printf("Git commit:       %s\n", FW_GIT_COMMIT);
+
   tft.init();
   tft.setRotation(1);
   tft.fillScreen(TFT_BLACK);
