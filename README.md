@@ -2,7 +2,7 @@
 
 Welcome! This project runs on a small **ESP32** board with a TFT screen and shows Deacon schedule data from a JSON file you host. You edit **C++** in `src/main.cpp`, build with **PlatformIO**, and flash over USB.
 
-**Potato mode:** the same firmware includes an optional **Hot Potato** mini-game (ESP-NOW, no router). Toggle it by bridging **GPIO 22 and 21** (see below — **not** D23); full controls are in **[Hot Potato game](#hot-potato-game)**.
+**Potato mode:** the same firmware includes an optional **Hot Potato** mini-game (ESP-NOW, no router). Toggle it by bridging **D12 and D13** on the IdeaSpark headers (see **[Hot Potato game](#hot-potato-game)**); **do not** use **D23** for the bridge — it is the TFT **MOSI** line in this firmware.
 
 ## What is “vibe coding”?
 
@@ -145,13 +145,15 @@ A hidden mini-game is built into the same firmware — no separate flash needed.
 
 ### Trigger
 
-Bridge **GPIO 22** and **GPIO 21** together (hold ~300 ms, then release). On many **IdeaSpark-style** 1.14" boards the silkscreen at the end of the row shows **D22** and **D23** side by side — **GPIO 23 is the TFT SPI MOSI line in this firmware**, so it cannot be used for the potato bridge (you would fight the display). This build uses **D22 + D21**, which are usually still near that end of the breakout. A short wire or jumper works; bridge again to exit potato mode.
+Bridge **D12** and **D13** together (hold ~300 ms, then release). On the common **IdeaSpark** ESP-WROOM-32 1.14" board, **D12** and **D13** are **next to each other on the left header row** (just above **GND** / **VIN**) — a single jumper across those two pins is enough.
+
+The **right** header ends with **D22** and **D23** side by side, but **GPIO 23 is TFT SPI MOSI** in this project (`platformio.ini`), so **do not** short D23 for potato mode (you would corrupt SPI to the display). If you customize pins, pick two **unused** GPIOs and set `POT_PIN_A` / `POT_PIN_B` in `src/main.cpp`.
 
 ### Controls
 
 | Action | What it does |
 |--------|--------------|
-| Bridge GPIO 22 + 21 | Toggle potato mode on / off |
+| Bridge **D12 + D13** (GPIO 12 & 13) | Toggle potato mode on / off |
 | Long-press BOOT (2 s) while **Waiting** | Start a new 30-second game — broadcasts to all nearby boards |
 | Short-press BOOT while **holding the potato** | Pass it — subtracts 1 s penalty, broadcasts to everyone else |
 | Short-press BOOT on the **BOOM** screen | Reset to Waiting |

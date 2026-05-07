@@ -26,11 +26,12 @@ ActiveScreen currentScreen = SCREEN_LESSONS;
 String rawJsonData = "{}";
 
 // ── Hot Potato ──────────────────────────────────────────────────────────────
-// Trigger: bridge two GPIOs together (INPUT_PULLUP; shorting both to each other
-// pulls them LOW). IdeaSpark-style 1.14" boards often break out D22/D23 at one
-// end — GPIO 23 is TFT MOSI in this project, so we use D22 + D21 instead.
-#define POT_PIN_A      22
-#define POT_PIN_B      21
+// Trigger: bridge two GPIOs (INPUT_PULLUP). IdeaSpark ESP-WROOM-32 1.14" kits:
+// **D12 and D13** are adjacent on the *left* header (above GND/VIN) — easy jumper.
+// **D22 and D23** sit together on the *right* end, but GPIO23 is TFT MOSI here,
+// so do not use D23 for this gesture. Change POT_PIN_* if your silkscreen differs.
+#define POT_PIN_A      12
+#define POT_PIN_B      13
 
 struct __attribute__((packed)) PotatoPacket {
   int      timer;       // seconds remaining when sent
@@ -115,7 +116,7 @@ void displayPotato() {
     tft.fillEllipse(120, 100, 30, 18, TFT_ORANGE);
     tft.fillEllipse(120, 95, 18, 8, 0xA240);
     tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-    tft.drawString("Bridge pins 22+21 to exit", 120, 124);
+    tft.drawString("Bridge D12+D13 to exit", 120, 124);
   } else if (potState == POT_ACTIVE) {
     tft.fillScreen(TFT_RED);
     tft.drawRect(1,1,238,133, TFT_YELLOW);
@@ -151,7 +152,7 @@ void displayPotato() {
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.drawString("You held it too long!", 120, 118);
     tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-    tft.drawString("Bridge pins 22+21 to exit", 120, 128);
+    tft.drawString("Bridge D12+D13 to exit", 120, 128);
   }
 }
 
@@ -515,7 +516,7 @@ void loop() {
   static unsigned long lastClockDraw = 0;
   static unsigned long lastHourlySync = 0;
 
-  // ── Potato mode toggle: bridge GPIO 22 + 21 simultaneously ──────────────────
+  // ── Potato mode toggle: bridge GPIO 12 + 13 (D12+D13) simultaneously ───────
   {
     static unsigned long bridgeStart  = 0;
     static bool          bridgeActive = false;
