@@ -2,7 +2,7 @@
 
 Welcome! This project runs on a small **ESP32** board with a TFT screen and shows Deacon schedule data from a JSON file you host. You edit **C++** in `src/main.cpp`, build with **PlatformIO**, and flash over USB.
 
-**Potato mode:** the same firmware includes an optional **Hot Potato** mini-game (ESP-NOW, no router). Toggle it by bridging **GPIO 12 and 13**; full controls and behavior are in **[Hot Potato game](#hot-potato-game)** below.
+**Potato mode:** the same firmware includes an optional **Hot Potato** mini-game (ESP-NOW, no router). Toggle it by bridging **GPIO 22 and 21** (see below — **not** D23); full controls are in **[Hot Potato game](#hot-potato-game)**.
 
 ## What is “vibe coding”?
 
@@ -145,13 +145,13 @@ A hidden mini-game is built into the same firmware — no separate flash needed.
 
 ### Trigger
 
-Bridge **GPIO 12** and **GPIO 13** together (hold ~300 ms). These are the two exposed header pins near the end of the board opposite the USB port. A short wire, a jumper, or even a damp finger across both pads works. Bridge them again to return to the normal schedule screens.
+Bridge **GPIO 22** and **GPIO 21** together (hold ~300 ms, then release). On many **IdeaSpark-style** 1.14" boards the silkscreen at the end of the row shows **D22** and **D23** side by side — **GPIO 23 is the TFT SPI MOSI line in this firmware**, so it cannot be used for the potato bridge (you would fight the display). This build uses **D22 + D21**, which are usually still near that end of the breakout. A short wire or jumper works; bridge again to exit potato mode.
 
 ### Controls
 
 | Action | What it does |
 |--------|--------------|
-| Bridge GPIO 12 + 13 | Toggle potato mode on / off |
+| Bridge GPIO 22 + 21 | Toggle potato mode on / off |
 | Long-press BOOT (2 s) while **Waiting** | Start a new 30-second game — broadcasts to all nearby boards |
 | Short-press BOOT while **holding the potato** | Pass it — subtracts 1 s penalty, broadcasts to everyone else |
 | Short-press BOOT on the **BOOM** screen | Reset to Waiting |
@@ -161,7 +161,7 @@ Bridge **GPIO 12** and **GPIO 13** together (hold ~300 ms). These are the two ex
 - Uses **ESP-NOW** broadcast (no Wi-Fi router required). Any board in potato mode on the same channel can receive the potato.
 - ESP-NOW is only active while potato mode is on; the hourly schedule sync is unaffected.
 - The `PotatoPacket` struct carries `timer` (seconds left), `isExploded` (shame flag), and `senderID` (so boards ignore their own echoes).
-- Trigger detection uses `analogRead()` on the two pins — the same technique as the ghost32 EMF detector, just looking for both pins pulled low simultaneously.
+- Trigger detection uses `digitalRead()` with internal pull-ups: bridging the two pins ties them low together (reliable while Wi-Fi is on, unlike ADC2).
 
 ---
 

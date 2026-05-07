@@ -26,12 +26,11 @@ ActiveScreen currentScreen = SCREEN_LESSONS;
 String rawJsonData = "{}";
 
 // ── Hot Potato ──────────────────────────────────────────────────────────────
-// Trigger: bridge GPIO 12 and 13 together (exposed end-pins, same analog-read
-// technique as the ghost32 EMF detector). When both read LOW simultaneously
-// for a brief debounce period, potato mode toggles on/off.
-#define POT_PIN_A      12   // T5 / ADC2_CH4 — expose & bridge to enter mode
-#define POT_PIN_B      13   // T4 / ADC2_CH5 — expose & bridge to enter mode
-#define POT_BRIDGE_THR 200  // analogRead < threshold = "pulled low" / bridged
+// Trigger: bridge two GPIOs together (INPUT_PULLUP; shorting both to each other
+// pulls them LOW). IdeaSpark-style 1.14" boards often break out D22/D23 at one
+// end — GPIO 23 is TFT MOSI in this project, so we use D22 + D21 instead.
+#define POT_PIN_A      22
+#define POT_PIN_B      21
 
 struct __attribute__((packed)) PotatoPacket {
   int      timer;       // seconds remaining when sent
@@ -116,7 +115,7 @@ void displayPotato() {
     tft.fillEllipse(120, 100, 30, 18, TFT_ORANGE);
     tft.fillEllipse(120, 95, 18, 8, 0xA240);
     tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-    tft.drawString("Bridge pins 12+13 to exit", 120, 124);
+    tft.drawString("Bridge pins 22+21 to exit", 120, 124);
   } else if (potState == POT_ACTIVE) {
     tft.fillScreen(TFT_RED);
     tft.drawRect(1,1,238,133, TFT_YELLOW);
@@ -152,7 +151,7 @@ void displayPotato() {
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.drawString("You held it too long!", 120, 118);
     tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-    tft.drawString("Bridge pins 12+13 to exit", 120, 128);
+    tft.drawString("Bridge pins 22+21 to exit", 120, 128);
   }
 }
 
@@ -516,12 +515,12 @@ void loop() {
   static unsigned long lastClockDraw = 0;
   static unsigned long lastHourlySync = 0;
 
-  // ── Potato mode toggle: bridge GPIO 12 + 13 simultaneously ─────────────────
+  // ── Potato mode toggle: bridge GPIO 22 + 21 simultaneously ──────────────────
   {
     static unsigned long bridgeStart  = 0;
     static bool          bridgeActive = false;
-    bool bridged = (analogRead(POT_PIN_A) < POT_BRIDGE_THR) &&
-                   (analogRead(POT_PIN_B) < POT_BRIDGE_THR);
+    bool bridged =
+        (digitalRead(POT_PIN_A) == LOW) && (digitalRead(POT_PIN_B) == LOW);
     if (bridged && !bridgeActive) {
       bridgeStart  = millis();
       bridgeActive = true;
