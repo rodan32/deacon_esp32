@@ -7,6 +7,7 @@
 #include <TFT_eSPI.h>
 #include <WiFi.h>
 #include <esp_now.h>
+#include <esp_wifi.h>
 #include <time.h>
 
 Preferences preferences;
@@ -75,16 +76,37 @@ void sendPotato(int timerSec) {
   esp_now_send(POT_BCAST, (uint8_t *)&pkt, sizeof(pkt));
 }
 
+// ESP-NOW peers must share the same 2.4 GHz channel. With STA disconnected,
+// channel was ambiguous (often wrong vs another board). Pin to channel 1.
+static constexpr uint8_t POTATO_WIFI_CHANNEL = 1;
+
 bool initEspNow() {
   if (WiFi.getMode() == WIFI_OFF) WiFi.mode(WIFI_STA);
-  if (esp_now_init() != ESP_OK) { espNowReady = false; return false; }
+  if (esp_now_init() != ESP_OK) {
+    espNowReady = false;
+    Serial.println(F("[Potato] esp_now_init failed"));
+    return false;
+  }
+  esp_err_t ch = esp_wifi_set_channel(POTATO_WIFI_CHANNEL, WIFI_SECOND_CHAN_NONE);
+  if (ch != ESP_OK) {
+    Serial.printf("[Potato] esp_wifi_set_channel(%u) err %d\n",
+                  (unsigned)POTATO_WIFI_CHANNEL, (int)ch);
+  }
   esp_now_register_recv_cb(onPotatoRecv);
   esp_now_register_send_cb(onPotatoSent);
   esp_now_peer_info_t peer = {};
   memcpy(peer.peer_addr, POT_BCAST, 6);
-  peer.channel = 0; peer.encrypt = false;
-  esp_now_add_peer(&peer);
+  peer.channel = POTATO_WIFI_CHANNEL;
+  peer.encrypt = false;
+  if (esp_now_add_peer(&peer) != ESP_OK) {
+    Serial.println(F("[Potato] esp_now_add_peer failed"));
+    esp_now_deinit();
+    espNowReady = false;
+    return false;
+  }
   espNowReady = true;
+  Serial.printf("[Potato] ESP-NOW ready, ch=%u, chip=0x%08X\n",
+                (unsigned)POTATO_WIFI_CHANNEL, (unsigned)myChipID);
   return true;
 }
 
@@ -535,6 +557,11 @@ void loop() {
         } else {
           deinitEspNow();
           potState = POT_IDLE;
+          // Hourly sync was deferred while in potato — catch up if overdue.
+          if (millis() - lastHourlySync > 3600000UL) {
+            needsWifiAction = true;
+            wifiConnectStart = 0;
+          }
         }
         refreshDisplay();
       }
@@ -686,8 +713,8 @@ void loop() {
       }
     }
   } else {
-    // Check if an hour passed
-    if (millis() - lastHourlySync > 3600000) {
+    // Check if an hour passed (defer while potato mode — WiFi.begin changes channel)
+    if (!potatoMode && millis() - lastHourlySync > 3600000UL) {
       needsWifiAction = true;
       wifiConnectStart = 0;
     }

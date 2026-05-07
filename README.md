@@ -165,6 +165,18 @@ The **right** header ends with **D22** and **D23** side by side, but **GPIO 23 i
 - The `PotatoPacket` struct carries `timer` (seconds left), `isExploded` (shame flag), and `senderID` (so boards ignore their own echoes).
 - Trigger detection uses `digitalRead()` with internal pull-ups: bridging the two pins ties them low together (reliable while Wi-Fi is on, unlike ADC2).
 
+### Troubleshooting (two or more boards)
+
+1. **Both must be in potato mode** (bridge **D12+D13** on each). Only then is ESP-NOW active.
+2. **Start the game from one board only:** on each device you should see *Waiting for potato…* — **long-press BOOT (2 s)** on **one** unit to broadcast a new game. Others should flip to the red *POTATO!* screen with a countdown. If nothing happens, go to step 3.
+3. **Use Serial (115200)** on each USB port. On entering potato mode you should see  
+   `[Potato] ESP-NOW ready, ch=1, chip=0x........`  
+   When you long-press to start or pass, watch for  
+   `[Potato] send OK` vs `FAIL`. Repeated **FAIL** usually means the radio was not on a stable channel (fixed in current firmware by locking to **Wi-Fi channel 1** for ESP-NOW).
+4. **Avoid starting potato during the first Wi-Fi sync** (right after boot). Wait until the board has finished connecting / sync (or given up), then enter potato mode on **both** units.
+5. **2.4 GHz only** — ESP32 classic does not use 5 GHz. Keep boards in the same room for first tests; metal desks and USB noise can weaken the link.
+6. **Hourly schedule sync** is **paused while potato mode is on** so `WiFi.begin` does not change the channel mid-game. After you exit potato mode, a missed hourly sync runs if it is overdue.
+
 ---
 
 ## Ideas to customize (`src/main.cpp`)
