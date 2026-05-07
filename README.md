@@ -36,6 +36,22 @@ Use **GitHub Codespaces** in the browser (full dev environment in the cloud). Yo
 
 ## Set up the project
 
+### Fresh computer (clone and build)
+
+Everything required to **build** is in git (PlatformIO reads `platformio.ini` and downloads libraries on first build). You only create **`src/secrets.h`** locally — it is never committed.
+
+| Step | Action |
+|------|--------|
+| 1 | **Clone:** `git clone https://github.com/rodan32/deacon_esp32.git` then `cd deacon_esp32` (or clone **your fork** and use that URL instead). |
+| 2 | **Tooling:** Install [PlatformIO](https://docs.platformio.org/en/latest/core/installation.html) (CLI and/or the VS Code / Cursor extension). |
+| 3 | **Secrets:** In `src/`, copy `secrets.example.h` → **`secrets.h`** and edit Wi-Fi + `DATA_JSON_URL` (see **Wi-Fi and JSON URL** below). |
+| 4 | **Build:** From the project root run **`pio run`**. This runs `scripts/gen_fw_version.py`, which creates **`include/fw_version.h`** (gitignored — regenerated every build). |
+| 5 | **Flash:** `pio run -t upload --upload-port COM21` on Windows, or e.g. `--upload-port /dev/cu.usbserial-*` on macOS (pick the port your board enumerates as). |
+| 6 | **Monitor:** `pio device monitor` (or the IDE serial monitor) at **115200** baud. |
+| 7 | **USB drivers (macOS):** if no serial device appears, install the vendor driver for **CH340** or **CP210x**; installers and notes live under **`drivers/`** in this repo. |
+
+**Board:** firmware targets the common **IdeaSpark-style** ESP32 + **1.14" ST7789** pinout already defined in `platformio.ini` (`TFT_*` build flags).
+
 ### 1. Git (optional but recommended)
 
 Git tracks history and helps you share work.
