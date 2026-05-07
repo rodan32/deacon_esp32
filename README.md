@@ -137,6 +137,32 @@ The file **`VERSION`** holds a simple release number (e.g. `1.0.0`). Each build 
 
 ---
 
+## Hot Potato game
+
+A hidden mini-game is built into the same firmware — no separate flash needed.
+
+### Trigger
+
+Bridge **GPIO 12** and **GPIO 13** together (hold ~300 ms). These are the two exposed header pins near the end of the board opposite the USB port. A short wire, a jumper, or even a damp finger across both pads works. Bridge them again to return to the normal schedule screens.
+
+### Controls
+
+| Action | What it does |
+|--------|--------------|
+| Bridge GPIO 12 + 13 | Toggle potato mode on / off |
+| Long-press BOOT (2 s) while **Waiting** | Start a new 30-second game — broadcasts to all nearby boards |
+| Short-press BOOT while **holding the potato** | Pass it — subtracts 1 s penalty, broadcasts to everyone else |
+| Short-press BOOT on the **BOOM** screen | Reset to Waiting |
+
+### How it works
+
+- Uses **ESP-NOW** broadcast (no Wi-Fi router required). Any board in potato mode on the same channel can receive the potato.
+- ESP-NOW is only active while potato mode is on; the hourly schedule sync is unaffected.
+- The `PotatoPacket` struct carries `timer` (seconds left), `isExploded` (shame flag), and `senderID` (so boards ignore their own echoes).
+- Trigger detection uses `analogRead()` on the two pins — the same technique as the ghost32 EMF detector, just looking for both pins pulled low simultaneously.
+
+---
+
 ## Ideas to customize (`src/main.cpp`)
 
 Pick one, describe it clearly to your assistant, then build and test.

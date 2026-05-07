@@ -6,6 +6,7 @@
 #include <Preferences.h>
 #include <TFT_eSPI.h>
 #include <WiFi.h>
+#include <esp_now.h>
 #include <time.h>
 
 Preferences preferences;
@@ -23,6 +24,137 @@ enum ActiveScreen { SCREEN_LESSONS, SCREEN_ACTIVITIES, SCREEN_ASSIGNMENTS };
 ActiveScreen currentScreen = SCREEN_LESSONS;
 
 String rawJsonData = "{}";
+
+// ── Hot Potato ──────────────────────────────────────────────────────────────
+// Trigger: bridge GPIO 12 and 13 together (exposed end-pins, same analog-read
+// technique as the ghost32 EMF detector). When both read LOW simultaneously
+// for a brief debounce period, potato mode toggles on/off.
+#define POT_PIN_A      12   // T5 / ADC2_CH4 — expose & bridge to enter mode
+#define POT_PIN_B      13   // T4 / ADC2_CH5 — expose & bridge to enter mode
+#define POT_BRIDGE_THR 200  // analogRead < threshold = "pulled low" / bridged
+
+struct __attribute__((packed)) PotatoPacket {
+  int      timer;       // seconds remaining when sent
+  bool     isExploded;  // sender blew up (shame broadcast)
+  uint32_t senderID;    // low 32-bits of sender MAC
+};
+
+enum PotatoSubState { POT_IDLE, POT_ACTIVE, POT_BOOM };
+
+static const uint8_t POT_BCAST[6] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+static uint32_t      myChipID     = 0;
+static bool          espNowReady  = false;
+bool                 potatoMode   = false;
+
+volatile PotatoSubState potState    = POT_IDLE;
+volatile int            potTimer    = 0;
+volatile unsigned long  potReceived = 0;
+
+// ── ESP-NOW callbacks ────────────────────────────────────────────────────────
+void onPotatoRecv(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
+  if (len != sizeof(PotatoPacket)) return;
+  PotatoPacket pkt;
+  memcpy(&pkt, data, sizeof(pkt));
+  if (pkt.senderID == myChipID) return;  // our own echo
+  if (pkt.isExploded)           return;  // someone else blew up
+  if (!potatoMode)              return;  // we're not playing
+  if (potState == POT_IDLE) {
+    potTimer    = pkt.timer;
+    potReceived = millis();
+    potState    = POT_ACTIVE;
+  }
+}
+
+void onPotatoSent(const wifi_tx_info_t *tx_info, esp_now_send_status_t s) {
+  Serial.printf("[Potato] send %s\n", s == ESP_NOW_SEND_SUCCESS ? "OK" : "FAIL");
+}
+
+void sendPotato(int timerSec) {
+  if (!espNowReady) return;
+  PotatoPacket pkt = {timerSec, false, myChipID};
+  esp_now_send(POT_BCAST, (uint8_t *)&pkt, sizeof(pkt));
+}
+
+bool initEspNow() {
+  if (WiFi.getMode() == WIFI_OFF) WiFi.mode(WIFI_STA);
+  if (esp_now_init() != ESP_OK) { espNowReady = false; return false; }
+  esp_now_register_recv_cb(onPotatoRecv);
+  esp_now_register_send_cb(onPotatoSent);
+  esp_now_peer_info_t peer = {};
+  memcpy(peer.peer_addr, POT_BCAST, 6);
+  peer.channel = 0; peer.encrypt = false;
+  esp_now_add_peer(&peer);
+  espNowReady = true;
+  return true;
+}
+
+void deinitEspNow() {
+  esp_now_deinit();
+  espNowReady = false;
+  // WiFi mode is left for the main sync logic to manage
+}
+
+// ── Potato display (screen is 240x135, landscape rotation 1) ─────────────────
+void drawPotatoFlame(int cx, int cy) {
+  tft.fillTriangle(cx-14,cy+14, cx,cy-20, cx+14,cy+14, TFT_ORANGE);
+  tft.fillTriangle(cx-6, cy+14, cx-2,cy-8, cx+4, cy+14, TFT_YELLOW);
+  tft.fillTriangle(cx+2, cy+14, cx+5,cy-10,cx+11,cy+14, TFT_YELLOW);
+}
+
+void displayPotato() {
+  tft.setTextDatum(TC_DATUM);
+  if (potState == POT_IDLE) {
+    tft.fillScreen(TFT_BLACK);
+    tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    tft.setTextSize(2);
+    tft.drawString("HOT POTATO", 120, 5);
+    tft.drawFastHLine(10, 30, 220, TFT_DARKGREY);
+    tft.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
+    tft.setTextSize(1);
+    tft.drawString("Waiting for potato...", 120, 45);
+    tft.drawString("Long-press BOOT = new game", 120, 60);
+    tft.fillEllipse(120, 100, 30, 18, TFT_ORANGE);
+    tft.fillEllipse(120, 95, 18, 8, 0xA240);
+    tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+    tft.drawString("Bridge pins 12+13 to exit", 120, 124);
+  } else if (potState == POT_ACTIVE) {
+    tft.fillScreen(TFT_RED);
+    tft.drawRect(1,1,238,133, TFT_YELLOW);
+    tft.drawRect(3,3,234,129, TFT_YELLOW);
+    tft.setTextDatum(TL_DATUM);
+    tft.setTextColor(TFT_YELLOW, TFT_RED);
+    tft.setTextSize(2);
+    tft.drawString("POTATO!", 8, 6);
+    int elapsed  = (int)((millis() - potReceived) / 1000);
+    int secsLeft = max(0, potTimer - elapsed);
+    tft.setTextColor(TFT_WHITE, TFT_RED);
+    tft.setTextSize(5);
+    tft.setTextDatum(MC_DATUM);
+    tft.drawString(String(secsLeft), 95, 75);
+    drawPotatoFlame(190, 72);
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_YELLOW, TFT_RED);
+    tft.setTextDatum(BC_DATUM);
+    tft.drawString("BOOT = pass", 120, 132);
+  } else { // POT_BOOM
+    tft.fillScreen(TFT_BLACK);
+    for (int a = 0; a < 360; a += 22) {
+      float r = a * PI / 180.0f;
+      tft.drawLine(120,65, 120+52*cosf(r), 65+42*sinf(r), TFT_ORANGE);
+    }
+    tft.fillCircle(120, 65, 28, TFT_YELLOW);
+    tft.fillCircle(120, 65, 16, TFT_WHITE);
+    tft.setTextColor(TFT_RED, TFT_BLACK);
+    tft.setTextSize(3);
+    tft.setTextDatum(TC_DATUM);
+    tft.drawString("BOOM!", 120, 100);
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+    tft.drawString("You held it too long!", 120, 118);
+    tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+    tft.drawString("Bridge pins 12+13 to exit", 120, 128);
+  }
+}
 
 // Helper function to print text with some basic wrapping
 void printWrapped(int x, int y, int w, String text) {
@@ -304,7 +436,9 @@ void displayAssignments() {
 }
 
 void refreshDisplay() {
-  if (currentScreen == SCREEN_LESSONS) {
+  if (potatoMode) {
+    displayPotato();
+  } else if (currentScreen == SCREEN_LESSONS) {
     displaySchedule();
   } else if (currentScreen == SCREEN_ACTIVITIES) {
     displayActivities();
@@ -357,6 +491,13 @@ void setup() {
   pinMode(TFT_BL, OUTPUT);
   digitalWrite(TFT_BL, HIGH);
 
+  myChipID = (uint32_t)(ESP.getEfuseMac() & 0xFFFFFFFF);
+  Serial.printf("Chip ID: 0x%08X\n", myChipID);
+
+  // Potato trigger pins — pulled up; bridge them together to activate
+  pinMode(POT_PIN_A, INPUT_PULLUP);
+  pinMode(POT_PIN_B, INPUT_PULLUP);
+
   pinMode(0, INPUT_PULLUP); // Boot button
 
   preferences.begin("deacon", false);
@@ -375,27 +516,90 @@ void loop() {
   static unsigned long lastClockDraw = 0;
   static unsigned long lastHourlySync = 0;
 
-  // Poll button for screen toggling
-  if (digitalRead(0) == LOW) {
-    delay(50); // basic debounce
-    if (digitalRead(0) == LOW) {
-      if (currentScreen == SCREEN_LESSONS) {
-        currentScreen = SCREEN_ACTIVITIES;
-      } else if (currentScreen == SCREEN_ACTIVITIES) {
-        currentScreen = SCREEN_ASSIGNMENTS;
-      } else {
-        currentScreen = SCREEN_LESSONS;
+  // ── Potato mode toggle: bridge GPIO 12 + 13 simultaneously ─────────────────
+  {
+    static unsigned long bridgeStart  = 0;
+    static bool          bridgeActive = false;
+    bool bridged = (analogRead(POT_PIN_A) < POT_BRIDGE_THR) &&
+                   (analogRead(POT_PIN_B) < POT_BRIDGE_THR);
+    if (bridged && !bridgeActive) {
+      bridgeStart  = millis();
+      bridgeActive = true;
+    } else if (!bridged) {
+      if (bridgeActive && millis() - bridgeStart > 300) {
+        // Confirmed bridge gesture — toggle mode
+        potatoMode = !potatoMode;
+        if (potatoMode) {
+          potState = POT_IDLE;
+          initEspNow();
+        } else {
+          deinitEspNow();
+          potState = POT_IDLE;
+        }
+        refreshDisplay();
       }
-      preferences.putInt("screen", currentScreen);
-      refreshDisplay();
+      bridgeActive = false;
+    }
+  }
 
-      while (digitalRead(0) == LOW) {
-        delay(10);
+  // ── Boot button ──────────────────────────────────────────────────────────────
+  if (digitalRead(0) == LOW) {
+    delay(50);
+    if (digitalRead(0) == LOW) {
+      if (potatoMode) {
+        // ── Potato mode: short press = pass, long press (2s) = new game ────
+        unsigned long pressStart = millis();
+        while (digitalRead(0) == LOW) { delay(10); }
+        bool longPress = (millis() - pressStart > 2000);
+
+        if (longPress && potState == POT_IDLE) {
+          // Start a fresh game with 30-second countdown
+          sendPotato(30);
+          Serial.println("[Potato] New game started, timer=30");
+        } else if (!longPress && potState == POT_ACTIVE) {
+          // Pass the potato; subtract 1 s as a penalty
+          int elapsed  = (int)((millis() - potReceived) / 1000);
+          int timeLeft = max(1, potTimer - elapsed - 1);
+          sendPotato(timeLeft);
+          potState = POT_IDLE;
+          displayPotato();
+          Serial.printf("[Potato] Passed! timer=%d\n", timeLeft);
+        } else if (!longPress && potState == POT_BOOM) {
+          potState = POT_IDLE;
+          displayPotato();
+        }
+      } else {
+        // ── Normal mode: cycle schedule screens ─────────────────────────────
+        if (currentScreen == SCREEN_LESSONS) {
+          currentScreen = SCREEN_ACTIVITIES;
+        } else if (currentScreen == SCREEN_ACTIVITIES) {
+          currentScreen = SCREEN_ASSIGNMENTS;
+        } else {
+          currentScreen = SCREEN_LESSONS;
+        }
+        preferences.putInt("screen", currentScreen);
+        refreshDisplay();
+        while (digitalRead(0) == LOW) { delay(10); }
       }
     }
   }
 
-  if (millis() - lastClockDraw > 10000 || lastClockDraw == 0) {
+  // ── Potato active: update countdown, detect boom ────────────────────────────
+  if (potatoMode && potState == POT_ACTIVE) {
+    static unsigned long lastPotDraw = 0;
+    int elapsed  = (int)((millis() - potReceived) / 1000);
+    int timeLeft = potTimer - elapsed;
+    if (timeLeft <= 0) {
+      potState = POT_BOOM;
+      displayPotato();
+    } else if (millis() - lastPotDraw > 1000) {
+      lastPotDraw = millis();
+      displayPotato(); // redraw countdown every second
+    }
+  }
+
+  // ── Clock refresh (skip in potato mode — different screen layout) ────────────
+  if (!potatoMode && (millis() - lastClockDraw > 10000 || lastClockDraw == 0)) {
     drawClock();
     lastClockDraw = millis();
   }
