@@ -1,3 +1,4 @@
 .pio
 src/secrets.h
 include/fw_version.h
+.env

@@ -2,6 +2,8 @@
 
 Welcome! This project runs on a small **ESP32** board with a TFT screen and shows Deacon schedule data from a JSON file you host. You edit **C++** in `src/main.cpp`, build with **PlatformIO**, and flash over USB.
 
+**Potato mode:** the same firmware includes an optional **Hot Potato** mini-game (ESP-NOW, no router). Toggle it by bridging **GPIO 12 and 13**; full controls and behavior are in **[Hot Potato game](#hot-potato-game)** below.
+
 ## What is “vibe coding”?
 
 You describe what you want (to a human teammate or an AI assistant), review the code it suggests, and learn by changing things. You do not have to memorize every API — but it helps to know *roughly* what Wi-Fi, JSON, and the display stack are doing.
@@ -133,7 +135,7 @@ sudo usermod -aG dialout $USER
 
 ## Firmware version
 
-The file **`VERSION`** holds a simple release number (e.g. `1.0.0`). Each build runs `scripts/gen_fw_version.py`, which writes **`include/fw_version.h`** (git describe / commit). At boot, the firmware prints that info on **Serial** so you can confirm what is running.
+The file **`VERSION`** holds a simple release number (e.g. `1.0.0`). Each build runs `scripts/gen_fw_version.py`, which writes **`include/fw_version.h`** (git describe / commit). At boot, the firmware prints that info on **Serial** so you can confirm what is running. If you are debugging odd Wi-Fi or radio behavior, note whether **potato mode** was on — it brings up ESP-NOW while active (see [Hot Potato game](#hot-potato-game)).
 
 ---
 
